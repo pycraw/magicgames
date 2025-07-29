@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CheatGames</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .app-bg {
+            background: linear-gradient(135deg, #1f0f38 0%, #0f172a 100%);
+        }
+        .glassmorphism {
+            background: rgba(25, 15, 40, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            will-change: opacity, transform;
+            overflow-y: auto;
+            padding: 1.25rem;
+        }
+        .page-hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+        }
+        .btn {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        .btn:active {
+            transform: translateY(2px);
+        }
+        .coin-icon {
+            filter: drop-shadow(0 0 5px #facc15);
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            width: 100%;
+            height: 100%;
+            max-width: 400px;
+        }
+        .dashboard-tile {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            will-change: transform;
+            padding: 1rem;
+            text-align: center;
+        }
+        .dashboard-tile:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .balance-tile:hover, .title-tile:hover {
+            transform: none;
+            box-shadow: none;
+            cursor: default;
+        }
+        /* Стиль для выделения верхней плитки */
+        .title-tile-highlight {
+            background: rgba(40, 25, 65, 0.7);
+            box-shadow: 0 0 25px rgba(192, 132, 252, 0.15);
+        }
+        .dashboard-tile-icon {
+            font-size: 3.5rem;
+            line-height: 1;
+        }
+        .dashboard-tile-title {
+            font-weight: 700;
+            margin-top: 0.75rem;
+        }
+        .tic-tac-toe-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+        .tic-tac-toe-cell {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: background-color 0.3s ease;
+        }
+        .particle {
+            position: absolute;
+            background: #facc15;
+            border-radius: 50%;
+            opacity: 0;
+            animation: burst 1s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes burst {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        @keyframes scale-in {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-scale-in {
+            animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="app-bg text-white overflow-hidden">
+
+    <div id="app-container" class="relative w-full h-screen max-w-md mx-auto">
+
+        <!-- Header для внутренних страниц -->
+        <header id="page-header" class="absolute top-0 left-0 right-0 p-4 z-20 flex justify-between items-center page-hidden">
+             <button onclick="showPage('page-dashboard')" class="btn bg-white/10 hover:bg-white/20 text-white font-bold p-3 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            </button>
+            <div id="balance-display-header" class="glassmorphism px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
+                <span class="font-bold text-lg" id="balance-header">100</span>
+                <span class="text-yellow-400 text-2xl coin-icon">🪙</span>
+            </div>
+        </header>
+
+        <!-- Dashboard Page (Main Menu) -->
+        <div id="page-dashboard" class="page flex flex-col items-center justify-center">
+            <div class="dashboard-grid">
+                <div class="dashboard-tile glassmorphism title-tile-highlight title-tile col-span-2">
+                    <h1 class="text-4xl font-bold tracking-tighter" style="text-shadow: 0 0 8px rgba(255,255,255,0.15)">CheatGames</h1>
+                </div>
+                <div onclick="showPage('page-tic-tac-toe')" class="dashboard-tile glassmorphism">
+                    <div class="dashboard-tile-icon">#</div>
+                    <div class="dashboard-tile-title">Крестики-нолики</div>
+                </div>
+                <div onclick="showPage('page-rps')" class="dashboard-tile glassmorphism">
+                    <div class="dashboard-tile-icon">✌️</div>
+                    <div class="dashboard-tile-title">Камень, ножницы, бумага</div>
+                </div>
+                <div onclick="showPage('page-store')" class="dashboard-tile glassmorphism">
+                    <div class="dashboard-tile-icon">🏪</div>
+                    <div class="dashboard-tile-title">Магазин</div>
+                </div>
+                <div class="dashboard-tile glassmorphism balance-tile">
+                    <span class="text-yellow-400 text-5xl coin-icon">🪙</span>
+                    <div class="mt-2">
+                        <span id="balance-dashboard" class="text-3xl font-bold">100</span>
+                        <p class="text-white/60 text-sm">монет</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tic-Tac-Toe Game Page -->
+        <div id="page-tic-tac-toe" class="page page-hidden flex flex-col justify-center items-center">
+            <h2 class="text-3xl font-bold mb-2">Крестики-нолики</h2>
+            <p id="ttt-status" class="text-white/80 h-6 mb-2">Ваш ход!</p>
+            <div class="tic-tac-toe-board"></div>
+        </div>
+
+        <!-- Rock Paper Scissors Game Page -->
+        <div id="page-rps" class="page page-hidden flex flex-col justify-center items-center">
+            <h2 class="text-3xl font-bold mb-4">Камень, ножницы, бумага</h2>
+            <p id="rps-status" class="text-white/80 h-10 text-xl text-center mb-4">Сделайте ваш выбор!</p>
+            <div class="flex justify-center items-center gap-4 mb-6">
+                <div id="rps-player-choice" class="glassmorphism w-24 h-24 rounded-2xl flex justify-center items-center text-5xl">?</div>
+                <div class="text-2xl font-bold">VS</div>
+                <div id="rps-cpu-choice" class="glassmorphism w-24 h-24 rounded-2xl flex justify-center items-center text-5xl">?</div>
+            </div>
+            <div id="rps-controls" class="flex gap-4">
+                <button onclick="playRPS('rock')" class="btn glassmorphism hover:bg-white/20 p-4 rounded-2xl text-5xl">✊</button>
+                <button onclick="playRPS('paper')" class="btn glassmorphism hover:bg-white/20 p-4 rounded-2xl text-5xl">✋</button>
+                <button onclick="playRPS('scissors')" class="btn glassmorphism hover:bg-white/20 p-4 rounded-2xl text-5xl">✌️</button>
+            </div>
+        </div>
+
+        <!-- Store Page -->
+        <div id="page-store" class="page page-hidden flex flex-col justify-center items-center">
+            <h2 class="text-3xl font-bold mb-6">Магазин</h2>
+            <div class="w-full max-w-sm flex flex-col gap-4">
+                <div class="glassmorphism p-4 rounded-xl flex justify-between items-center w-full">
+                    <div>
+                        <h3 class="font-bold text-lg">TEST KEY</h3>
+                        <p class="text-yellow-400 font-semibold flex items-center gap-1">1 🪙</p>
+                    </div>
+                    <button onclick="buyItem('test_key', 1)" class="btn bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-5 rounded-lg">
+                        Купить
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Display Modal -->
+        <div id="key-modal" class="page-hidden fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4 transition-opacity duration-300" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+            <div class="glassmorphism w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl flex flex-col items-center animate-scale-in">
+                <h3 class="text-2xl font-bold mb-2">Ваш ключ получен!</h3>
+                <p class="text-white/70 mb-4">Действителен: 7 дней</p>
+                <div class="bg-slate-900/50 rounded-lg p-3 w-full mb-4">
+                    <p id="key-display-text" class="font-mono text-lg text-fuchsia-400 break-words"></p>
+                </div>
+                <button id="copy-key-btn" class="btn bg-fuchsia-600 hover:bg-fuchsia-500 w-full flex items-center justify-center gap-2 text-white font-bold py-3 px-4 rounded-xl shadow-lg text-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                    <span>Скопировать</span>
+                </button>
+                <button onclick="closeKeyModal()" class="btn mt-4 bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-full">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- State Management ---
+        let balance = 100;
+        let currentPage = 'page-dashboard';
+
+        // --- DOM Elements ---
+        const balanceHeaderEl = document.getElementById('balance-header');
+        const balanceDashboardEl = document.getElementById('balance-dashboard');
+        const pages = document.querySelectorAll('.page');
+        const pageHeader = document.getElementById('page-header');
+        const appContainer = document.getElementById('app-container');
+        const keyModal = document.getElementById('key-modal');
+        const keyDisplayText = document.getElementById('key-display-text');
+        const copyKeyBtn = document.getElementById('copy-key-btn');
+        const copyKeyBtnText = copyKeyBtn.querySelector('span');
+
+        // --- Navigation ---
+        function showPage(pageId) {
+            if (pageId === 'page-dashboard') {
+                pageHeader.classList.add('page-hidden');
+            } else {
+                pageHeader.classList.remove('page-hidden');
+            }
+            pages.forEach(page => {
+                if (page.id === pageId) {
+                    page.classList.remove('page-hidden');
+                } else {
+                    page.classList.add('page-hidden');
+                }
+            });
+            currentPage = pageId;
+        }
+
+        // --- Currency & Effects ---
+        function updateBalance(newBalance) {
+            balance = newBalance;
+            balanceHeaderEl.textContent = balance;
+            balanceDashboardEl.textContent = balance;
+        }
+
+        function addCurrency(amount, message) {
+            updateBalance(balance + amount);
+            const balanceDisplay = document.getElementById('balance-display-header');
+            showToast(`${message} +${amount} 🪙`);
+            createBurstEffect(balanceDisplay);
+        }
+        
+        function createBurstEffect(element) {
+            const rect = element.getBoundingClientRect();
+            const containerRect = appContainer.getBoundingClientRect();
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 8 + 4;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+                particle.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
+                const angle = Math.random() * 360;
+                const distance = Math.random() * 50 + 50;
+                const translateX = Math.cos(angle * Math.PI / 180) * distance;
+                const translateY = Math.sin(angle * Math.PI / 180) * distance;
+                const keyframes = `@keyframes burst-${i} {
+                    0% { transform: translate(0, 0) scale(0.5); opacity: 1; }
+                    100% { transform: translate(${translateX}px, ${translateY}px) scale(0); opacity: 0; }
+                }`;
+                let styleSheet = document.getElementById('dynamic-styles');
+                if (!styleSheet) {
+                    styleSheet = document.createElement('style');
+                    styleSheet.id = 'dynamic-styles';
+                    document.head.appendChild(styleSheet);
+                }
+                try {
+                    styleSheet.sheet.insertRule(keyframes, styleSheet.sheet.cssRules.length);
+                    particle.style.animation = `burst-${i} 0.8s ease-out forwards`;
+                } catch (e) { console.error("Could not apply particle animation", e); }
+                appContainer.appendChild(particle);
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+
+        function showToast(message, duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg text-center z-50 transition-all duration-300 transform translate-y-10 opacity-0';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 50);
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // --- Store & Key Modal Logic ---
+        function buyItem(itemId, cost) {
+            if (balance >= cost) {
+                updateBalance(balance - cost);
+                showToast(`Вы купили "${itemId}"!`, 3000);
+                if (itemId === 'test_key') {
+                    const key = 'CHEAT-GAMES-TEST-' + Date.now();
+                    showKeyModal(key);
+                }
+            } else {
+                showToast('Недостаточно средств!', 3000);
+            }
+        }
+
+        function showKeyModal(key) {
+            keyDisplayText.textContent = key;
+            copyKeyBtn.onclick = () => copyKey(key);
+            copyKeyBtnText.textContent = 'Скопировать';
+            copyKeyBtn.classList.remove('bg-green-500');
+            copyKeyBtn.classList.add('bg-fuchsia-600');
+            keyModal.classList.remove('page-hidden');
+        }
+
+        function closeKeyModal() {
+            keyModal.classList.add('page-hidden');
+        }
+
+        function copyKey(key) {
+            const textarea = document.createElement('textarea');
+            textarea.value = key;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                copyKeyBtnText.textContent = 'Скопировано!';
+                copyKeyBtn.classList.remove('bg-fuchsia-600');
+                copyKeyBtn.classList.add('bg-green-500');
+            } catch (err) {
+                console.error('Не удалось скопировать ключ', err);
+                copyKeyBtnText.textContent = 'Ошибка';
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // --- Rock Paper Scissors (RPS) Logic ---
+        const rpsChoices = ['rock', 'paper', 'scissors'];
+        const rpsEmoji = { rock: '✊', paper: '✋', scissors: '✌️' };
+        const rpsStatusEl = document.getElementById('rps-status');
+        const rpsPlayerChoiceEl = document.getElementById('rps-player-choice');
+        const rpsCpuChoiceEl = document.getElementById('rps-cpu-choice');
+        const rpsControls = document.getElementById('rps-controls');
+
+        function playRPS(playerChoice) {
+            rpsControls.style.pointerEvents = 'none';
+            const cpuChoice = rpsChoices[Math.floor(Math.random() * rpsChoices.length)];
+            rpsPlayerChoiceEl.textContent = rpsEmoji[playerChoice];
+            rpsCpuChoiceEl.textContent = '?';
+            setTimeout(() => {
+                rpsCpuChoiceEl.textContent = rpsEmoji[cpuChoice];
+                let resultText = '';
+                if (playerChoice === cpuChoice) {
+                    resultText = "Ничья! 😐";
+                } else if ((playerChoice === 'rock' && cpuChoice === 'scissors') || (playerChoice === 'paper' && cpuChoice === 'rock') || (playerChoice === 'scissors' && cpuChoice === 'paper')) {
+                    resultText = "Вы победили! 🎉";
+                    addCurrency(5, 'Победа!');
+                } else {
+                    resultText = "Вы проиграли! 😥";
+                }
+                rpsStatusEl.textContent = resultText;
+                setTimeout(() => {
+                    rpsStatusEl.textContent = 'Сделайте ваш выбор!';
+                    rpsPlayerChoiceEl.textContent = '?';
+                    rpsCpuChoiceEl.textContent = '?';
+                    rpsControls.style.pointerEvents = 'auto';
+                }, 2000);
+            }, 500);
+        }
+
+        // --- Tic-Tac-Toe (TTT) Logic ---
+        const tttBoardEl = document.querySelector('.tic-tac-toe-board');
+        const tttStatusEl = document.getElementById('ttt-status');
+        let tttBoard = ['', '', '', '', '', '', '', '', ''];
+        let tttCurrentPlayer = 'X';
+        let tttGameActive = true;
+
+        function renderTTTBoard() {
+            tttBoardEl.innerHTML = '';
+            tttBoard.forEach((value, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'tic-tac-toe-cell glassmorphism';
+                cell.textContent = value;
+                cell.dataset.index = index;
+                cell.addEventListener('click', handleTTTClick);
+                tttBoardEl.appendChild(cell);
+            });
+        }
+
+        function handleTTTClick(event) {
+            const clickedIndex = parseInt(event.target.dataset.index);
+            if (tttBoard[clickedIndex] !== '' || !tttGameActive || tttCurrentPlayer !== 'X') return;
+            makeTTTMove(clickedIndex, 'X');
+            if (tttGameActive) {
+                tttCurrentPlayer = 'O';
+                tttStatusEl.textContent = "Ход компьютера...";
+                setTimeout(computerTTTMove, 700);
+            }
+        }
+        
+        function makeTTTMove(index, player) {
+            if (tttBoard[index] === '' && tttGameActive) {
+                tttBoard[index] = player;
+                document.querySelector(`.tic-tac-toe-cell[data-index='${index}']`).textContent = player;
+                checkTTTResult();
+            }
+        }
+
+        function computerTTTMove() {
+            if (!tttGameActive) return;
+            let availableMoves = [];
+            tttBoard.forEach((cell, index) => {
+                if (cell === '') availableMoves.push(index);
+            });
+            if (availableMoves.length > 0) {
+                const randomIndex = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                makeTTTMove(randomIndex, 'O');
+            }
+            if(tttGameActive) {
+                tttCurrentPlayer = 'X';
+                tttStatusEl.textContent = "Ваш ход!";
+            }
+        }
+        
+        function checkTTTResult() {
+            const winningConditions = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+            let roundWon = false;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const winCondition = winningConditions[i];
+                let a = tttBoard[winCondition[0]];
+                let b = tttBoard[winCondition[1]];
+                let c = tttBoard[winCondition[2]];
+                if (a === '' || b === '' || c === '') continue;
+                if (a === b && b === c) {
+                    roundWon = true;
+                    break;
+                }
+            }
+            if (roundWon) {
+                const winner = tttCurrentPlayer === 'X' ? 'Вы' : 'Компьютер';
+                tttStatusEl.textContent = `${winner} победил(и)!`;
+                if(winner === 'Вы') addCurrency(10, 'Победа в крестиках-ноликах!');
+                tttGameActive = false;
+                setTimeout(() => { resetTTTGame(); showPage('page-dashboard'); }, 2500);
+                return;
+            }
+            if (!tttBoard.includes('')) {
+                tttStatusEl.textContent = 'Ничья!';
+                tttGameActive = false;
+                setTimeout(() => { resetTTTGame(); showPage('page-dashboard'); }, 2500);
+            }
+        }
+
+        function resetTTTGame() {
+            tttBoard = ['', '', '', '', '', '', '', '', ''];
+            tttCurrentPlayer = 'X';
+            tttGameActive = true;
+            tttStatusEl.textContent = 'Ваш ход!';
+            renderTTTBoard();
+        }
+
+        // --- Initial Setup ---
+        window.onload = () => {
+            showPage('page-dashboard');
+            updateBalance(100);
+            renderTTTBoard();
+        };
+    </script>
+</body>
+</html>
